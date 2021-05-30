@@ -1,14 +1,27 @@
 import time
 import csv
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
-
 from datetime import datetime
 
+DBUSER = 'marco'
+DBPASS = 'foobarbaz'
+DBHOST = 'db'
+DBPORT = '5432'
+DBNAME = 'testdb'
+
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = \
+    'postgresql+psycopg2://{user}:{passwd}@{host}:{port}/{db}'.format(
+        user=DBUSER,
+        passwd=DBPASS,
+        host=DBHOST,
+        port=DBPORT,
+        db=DBNAME)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = 'foobarbaz'
 
 db = SQLAlchemy(app)
-
 
 class Challenges(db.Model):
     __tablename__ = "Challenges"
@@ -68,28 +81,12 @@ def get_all():
     return jsonify(challs_dict)
 
 
-
-def get_add_name( begin_str,end_str,Duration_data,Phone_Number_str):
-    tb = Challenges.query.filter(Challenges.Phone_Number == Phone_Number_str).first()
-    if not tb:
-        tb = Challenges( begin = begin_str,end = end_str, Duration = Duration_data, Phone_Number = Phone_Number_str )
-    return tb
-
-
 def init_db():
     with open('gpa_table.csv', 'r', encoding='utf-8-sig') as f:
         line = csv.DictReader(f, delimiter=';')
         for ro in line:
-            if ro['Начало'] != '' or ro['Завершене'] != '' or ro['Телефон'] != '' or ro['Статус_завершен'] != '' :
-                aer=[(thing) for thing in (ro['Начало']).split() ]
-                date_begin_data = datetime.strptime(ro['Начало'], '%m-%d-%Y %H::%M::%S')
-
-                date_end_data = datetime.strptime(ro['Завершене'], '%m-%d-%Y %H::%M::%S')
-                date_Duration_data =(date_end_data - date_begin_data).total_seconds()
-
-                aert=int(ro['Телефон'])
-
-                test_rec = get_add_name(date_begin_data,date_end_data,date_Duration_data,aert)
+            if ro['Name'] != '' or ro['GPA'] != '':
+                test_rec = get_add_name(str(ro['Name']), str(ro['GPA']))
                 db.session.add(test_rec)
         db.session.commit()
 

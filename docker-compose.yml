@@ -1,0 +1,20 @@
+version: "3.5"
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./app/:/home/app/
+    depends_on:
+      - db
+  db:
+    image: postgres:10
+    env_file: .env
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGUSER : ${POSTGRES_USER}
+      PGDATABASE : ${POSTGRES_DB}
+      PGPASSFILE : ${POSTGRES_PASSWORD}
+    expose:
+      - 5432
